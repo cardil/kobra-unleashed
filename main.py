@@ -23,6 +23,7 @@ app = Flask(__name__)
 
 # Use external http server URL, default here will be used only if ROOT_URL is missing
 ROOT_URL = os.getenv("ROOT_URL", "http://192.168.1.234:5000")
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "*")
 # Random secret key
 app.config['SECRET'] = ''.join(random.choice(string.ascii_letters) for i in range(32))
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -43,7 +44,7 @@ received_messages = []
 printer_list: Dict[str, "Printer"] = {}
 
 socketio = SocketIO(app, logger=True, engineio_logger=True,
-                    cors_allowed_origins="*")
+                    cors_allowed_origins=CORS_ALLOWED_ORIGINS)
 client = mqtt.Client()
 
 
@@ -499,6 +500,12 @@ def upload_file():
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', CORS_ALLOWED_ORIGINS)
+    return response
 
 
 def configure_mqtt(mqtt_client, userdata, flags, rc):
