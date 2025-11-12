@@ -4,7 +4,7 @@ WORKDIR /js
 COPY kobra-client /js
 RUN pwd && npm install && npm run build
 
-FROM python:alpine
+FROM python:3.12-alpine
 
 # Set work directory
 WORKDIR /app
