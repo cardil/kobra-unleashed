@@ -237,6 +237,13 @@ def temperature_message(printer: Printer, payload):
           f"{printer.hotbed_temp}/{printer.target_hotbed_temp}°C Hotbed")
 
 
+def fan_message(printer: Printer, payload):
+    fan_speed = payload["data"].get("fan_speed_pct")
+    if fan_speed is not None and printer.print_job is not None:
+        printer.print_job.fan_speed = fan_speed
+        print(f"+++ Printer {printer.id} fan speed: {fan_speed}%")
+
+
 def file_message(printer: Printer, payload):
     action = payload["action"]
     if action in ["listLocal", "listUdisk"]:
@@ -361,6 +368,8 @@ def parse_message(mqtt_client, userdata, message):
             print_message(this_printer, payload)
         elif type == "ota":
             ota_message(this_printer, payload)
+        elif type == "fan":
+            fan_message(this_printer, payload)
         elif type == "lastWill":
             lastwill_message(this_printer, payload)
         else:
