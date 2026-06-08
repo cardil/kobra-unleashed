@@ -237,6 +237,16 @@ def temperature_message(printer: Printer, payload):
           f"{printer.hotbed_temp}/{printer.target_hotbed_temp}°C Hotbed")
 
 
+def fan_message(printer: Printer, payload) -> bool:
+    data = payload.get("data") or {}
+    fan_speed = data.get("fan_speed_pct")
+    if fan_speed is not None and printer.print_job is not None:
+        printer.print_job.fan_speed = fan_speed
+        print(f"+++ Printer {printer.id} fan speed: {fan_speed}%")
+        return True
+    return False
+
+
 def file_message(printer: Printer, payload):
     action = payload["action"]
     if action in ["listLocal", "listUdisk"]:
@@ -350,18 +360,25 @@ def parse_message(mqtt_client, userdata, message):
         printer_updated = True
     # Parse message
     if action == "report":
-        printer_updated = True
         if type == "status":
+            printer_updated = True
             status_message(this_printer, payload["state"])
         elif type == "tempature":  # tempature is not a typo, it's how the API spells it
+            printer_updated = True
             temperature_message(this_printer, payload)
         elif type == "file":
+            printer_updated = True
             file_message(this_printer, payload)
         elif type == "print":
+            printer_updated = True
             print_message(this_printer, payload)
         elif type == "ota":
+            printer_updated = True
             ota_message(this_printer, payload)
+        elif type == "fan":
+            printer_updated = fan_message(this_printer, payload) or printer_updated
         elif type == "lastWill":
+            printer_updated = True
             lastwill_message(this_printer, payload)
         else:
             print(f"Unknown message type: {type}/{action}")
