@@ -376,7 +376,7 @@ def parse_message(mqtt_client, userdata, message):
             printer_updated = True
             ota_message(this_printer, payload)
         elif type == "fan":
-            printer_updated = fan_message(this_printer, payload)
+            printer_updated = fan_message(this_printer, payload) or printer_updated
         elif type == "lastWill":
             printer_updated = True
             lastwill_message(this_printer, payload)
